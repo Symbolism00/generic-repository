@@ -1,4 +1,4 @@
-package lf.sol.abstractrepository.exception;
+package lf.sol.genericrepository.exception;
 
 public class WrongPaginationParamsException extends Exception{
 

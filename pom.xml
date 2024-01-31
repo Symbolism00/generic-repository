@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>lf.sol</groupId>
-    <artifactId>abstract-repository</artifactId>
+    <artifactId>generic-repository</artifactId>
     <version>0.0.1</version>
     <packaging>jar</packaging>
 
@@ -43,7 +43,7 @@
                             <archive>
                                 <manifest>
                                     <mainClass>
-                                        lf.sol.abstractrepository.Main
+                                        lf.sol.genericrepository.Main
                                     </mainClass>
                                 </manifest>
                             </archive>

@@ -1,12 +1,12 @@
-package lf.sol.abstractrepository.repository;
+package lf.sol.genericrepository.repository;
 
-import lf.sol.abstractrepository.model.AbstractEntity;
+import lf.sol.genericrepository.model.GenericEntity;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class Pagination<T extends AbstractEntity> {
+public class Pagination<T extends GenericEntity> {
 
     private final List<T> results;
     private final Long count;

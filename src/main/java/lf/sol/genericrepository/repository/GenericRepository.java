@@ -1,24 +1,24 @@
-package lf.sol.abstractrepository.repository;
+package lf.sol.genericrepository.repository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
-import lf.sol.abstractrepository.model.AbstractEntity;
-import lf.sol.abstractrepository.exception.NoCountPaginationException;
-import lf.sol.abstractrepository.exception.WrongPaginationParamsException;
+import lf.sol.genericrepository.model.GenericEntity;
+import lf.sol.genericrepository.exception.NoCountPaginationException;
+import lf.sol.genericrepository.exception.WrongPaginationParamsException;
 
 import java.util.List;
 
-public class GenericRepository<T extends AbstractEntity, Object> implements IGenericRepository<T, Object> {
+public class GenericRepository<T extends GenericEntity, Object> implements IGenericRepository<T, Object> {
 
     @PersistenceContext
     private EntityManager entityManager;
-    private final Class<T> abstractEntityClass;
+    private final Class<T> genericEntityClass;
 
-    public GenericRepository(Class<T> abstractEntityClass) {
-        this.abstractEntityClass = abstractEntityClass;
+    public GenericRepository(Class<T> genericEntityClass) {
+        this.genericEntityClass = genericEntityClass;
     }
 
     @Override
@@ -27,45 +27,42 @@ public class GenericRepository<T extends AbstractEntity, Object> implements IGen
     }
 
     @Override
-    public final GenericCondition<T> initCondition(boolean doCount){
-        // creates the builder
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(abstractEntityClass);
-        CriteriaQuery<Long> criteriaBuilderQueryCount = doCount ? criteriaBuilder.createQuery(Long.class) : null;
-
-        // select + from
-        Root<T> root = criteriaQuery.from(abstractEntityClass);
-        Root<T> rootCount = doCount ? criteriaBuilderQueryCount.from(abstractEntityClass) : null;
-        return new GenericCondition<T>(root, rootCount, criteriaBuilder, criteriaQuery, criteriaBuilderQueryCount, doCount);
+    public GenericCondition<T> initConditionWithCount() {
+        return initCondition(true);
     }
 
     @Override
-    public T saveOrUpdate(T entity) {
+    public T saveOrRefresh(T entity) {
         return entityManager.merge(entity);
     }
 
     @Override
-    public void save(T entity) {
+    public void saveNew(T entity) {
         entityManager.persist(entity);
     }
 
     @Override
-    public void delete(T entity) {
+    public void remove(T entity) {
         entityManager.remove(entity);
     }
 
     @Override
-    public T getById(Object id) {
-        return entityManager.find(abstractEntityClass, id);
+    public boolean existsById(Object id) {
+        return getById(id) != null;
     }
 
     @Override
-    public Long count() {
+    public T getById(Object id) {
+        return entityManager.find(genericEntityClass, id);
+    }
+
+    @Override
+    public Long total() {
         return entityManager.createQuery(initCondition(true).generateCount()).getSingleResult();
     }
 
     @Override
-    public Long count(GenericCondition<T> genericCondition) {
+    public Long total(GenericCondition<T> genericCondition) {
         return genericCondition.isDoCount() ? entityManager.createQuery(genericCondition.generateCount()).getSingleResult() : 0L;
     }
 
@@ -123,5 +120,22 @@ public class GenericRepository<T extends AbstractEntity, Object> implements IGen
     @Override
     public T getFirst(GenericCondition<T> genericCondition, GenericOrder... genericOrders) {
         return getNth(genericCondition, 1, genericOrders).getFirst();
+    }
+
+    /**
+     * Method that initializes a generic condition related to a specific entity
+     * @param doCount a flag that indicates if the count condition is to initialize in parallel
+     * @return the generic condition
+     */
+    private GenericCondition<T> initCondition(boolean doCount){
+        // creates the builder
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<T> criteriaQuery = criteriaBuilder.createQuery(genericEntityClass);
+        CriteriaQuery<Long> criteriaBuilderQueryCount = doCount ? criteriaBuilder.createQuery(Long.class) : null;
+
+        // select + from
+        Root<T> root = criteriaQuery.from(genericEntityClass);
+        Root<T> rootCount = doCount ? criteriaBuilderQueryCount.from(genericEntityClass) : null;
+        return new GenericCondition<>(root, rootCount, criteriaBuilder, criteriaQuery, criteriaBuilderQueryCount, doCount);
     }
 }
