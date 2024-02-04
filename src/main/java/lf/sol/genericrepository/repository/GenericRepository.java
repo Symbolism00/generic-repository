@@ -63,7 +63,7 @@ public class GenericRepository<T extends GenericEntity, Object> implements IGene
 
     @Override
     public Long total(GenericCondition<T> genericCondition) {
-        return genericCondition.isDoCount() ? entityManager.createQuery(genericCondition.generateCount()).getSingleResult() : 0L;
+        return genericCondition.doCount ? entityManager.createQuery(genericCondition.generateCount()).getSingleResult() : 0L;
     }
 
     @Override
@@ -86,7 +86,7 @@ public class GenericRepository<T extends GenericEntity, Object> implements IGene
     public Pagination<T> getSome(GenericCondition<T> genericCondition, int offset, int limit, GenericOrder... genericOrders) throws NoCountPaginationException, WrongPaginationParamsException {
 
         // if it does not have count then it cant return a pagination
-        if(!genericCondition.isDoCount()){
+        if(!genericCondition.doCount){
             throw new NoCountPaginationException("No count operation was created to do the pagination");
         }
 

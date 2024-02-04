@@ -20,8 +20,7 @@ public class GenericCondition<T extends GenericEntity> {
     private final CriteriaBuilder criteriaBuilder;
     private final CriteriaQuery<T> criteriaQuery;
     private final CriteriaQuery<Long> criteriaQueryCount;
-    @Getter(AccessLevel.PROTECTED)
-    private final boolean doCount;
+    protected final boolean doCount;
 
 
     protected GenericCondition(Root<T> root, Root<T> rootCount, CriteriaBuilder criteriaBuilder,
@@ -245,22 +244,27 @@ public class GenericCondition<T extends GenericEntity> {
 
     /**
      * Method that adds an OR generic condition to the another generic condition
-     * @param genericCondition the generic condition to add with OR
+     * @param genericConditions the generic conditions to add with OR
      * @return the generic condition
      */
-    public GenericCondition<T> or(GenericCondition<T> genericCondition){
-        predicates.add(criteriaBuilder.or(genericCondition.predicates));
+    @SafeVarargs
+    public final GenericCondition<T> andOr(GenericCondition<T> firstCondition, GenericCondition<T> secondCondition, GenericCondition<T>... genericConditions){
+        List<Predicate> newPredicates = new ArrayList<>();
+        newPredicates.add(criteriaBuilder.and(firstCondition.predicates.toArray(new Predicate[0])));
+        newPredicates.add(criteriaBuilder.and(secondCondition.predicates.toArray(new Predicate[0])));
+        for(GenericCondition<T> genericCondition : genericConditions){
+            newPredicates.add(criteriaBuilder.and(genericCondition.predicates.toArray(new Predicate[0])));
+        }
+        predicates.add(criteriaBuilder.or(newPredicates.toArray(new Predicate[0])));
         return this;
     }
 
     /**
-     * Method that adds an AND generic condition to the another generic condition
-     * @param genericCondition the generic condition to add with AND
-     * @return the generic condition
+     * Method that initiates a sub condition to be used with "ands" and "ors" condition
+     * @return the new sub condition
      */
-    public GenericCondition<T> and(GenericCondition<T> genericCondition){
-        predicates.add(criteriaBuilder.and(genericCondition.predicates));
-        return this;
+    public GenericCondition<T> initSubCondition() {
+        return new GenericCondition<>(root, rootCount, criteriaBuilder, criteriaQuery, criteriaQueryCount, doCount);
     }
 
     /**
